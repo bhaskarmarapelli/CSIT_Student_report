@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Tools Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+
+        .footer {
+            margin-top: 30px;
+            padding: 10px;
+            background-color: #E8ECEF;
+            border-top: 2px solid #1E90FF;
+            text-align: center;
+            font-size: 0.9em;
+            color: #333;
+        }
+        .footer span {
+            color: #1E90FF;
+            font-weight: bold;
+        }
+</style>
+
+</head>
+<body>
+    <div class="container mt-5">
+
+        <div class="header text-center">
+            <img src="/static/csit_logo.png" alt="CSIT Department Logo">
+        </div>
+
+        <h1 class="text-center">CSIT Students Data DashBoard </h1>
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Course Memo Generator</h5>
+                        <p class="card-text">Generate a course memo with details like course names categorised by Academic year and Bucket type , count of courses in each bucket</p>
+                        <a href="/memo" class="btn btn-primary">Go to Memo Generator</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">CSIT Student Report Generator</h5>
+                        <p class="card-text">Generate a student report with details like name, CGPA, credits, and backlogs.</p>
+                        <a href="/report" class="btn btn-primary">Go to Report Generator</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+         <div class="footer">
+            Developed by <span>Dr. Bhaskar Marapelli</span>, Associate Professor & Alternate HOD CSIT
+        </div>
+    </div>
+</body>
+</html>

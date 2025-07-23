@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CSIT Student Report Generator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #F5F6F5;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+        }
+        .header img {
+            max-width: 250px;
+            height: auto;
+            margin-bottom: 10px;
+        }
+        h2, h3 {
+            color: #1E90FF;
+        }
+        .btn-primary {
+            background-color: #1E90FF;
+            border-color: #1E90FF;
+        }
+        .btn-primary:hover {
+            background-color: #104E8B;
+            border-color: #104E8B;
+        }
+        .table {
+            background-color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .table th {
+            background-color: #104E8B;
+            color: white;
+        }
+        .footer {
+            margin-top: 30px;
+            padding: 10px;
+            background-color: #E8ECEF;
+            border-top: 2px solid #1E90FF;
+            text-align: center;
+            font-size: 0.9em;
+            color: #333;
+        }
+        .footer span {
+            color: #1E90FF;
+            font-weight: bold;
+        }
+        @media (max-width: 600px) {
+            .header img {
+                max-width: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="header text-center">
+            <img src="/static/csit_logo.png" alt="CSIT Department Logo">
+            <h2>CSIT Student Report Generator</h2>
+        </div>
+        {% if error_message %}
+            <div class="alert alert-danger">{{ error_message }}</div>
+        {% endif %}
+        <form method="POST" action="/report" class="d-flex flex-column flex-sm-row gap-3 mb-4">
+            <input type="text" name="roll_no" placeholder="Enter Roll No (e.g., 2200090051)" class="form-control" required>
+            <button type="submit" class="btn btn-primary">Generate Report</button>
+            <a href="/" class="btn btn-secondary">Back to Dashboard</a>
+        </form>
+        {% if student %}
+            <h3>Student Details</h3>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Roll No</th>
+                        <th>Name</th>
+                        <th>Hostel Status</th>
+                        <th>CGPA</th>
+                        <th>Total Registered Credits</th>
+                        <th>Result Declared Credits</th>
+                        <th>Result Awaiting Credits</th>
+                        <th>Obtained Credits</th>
+                        <th>Cumulative Grade Points</th>
+                        <th>Error</th>
+                        <th>Backlog Count</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{ student['Roll No'] }}</td>
+                        <td>{{ student['Name'] }}</td>
+                        <td>{{ student['Hostel status'] }}</td>
+                        <td>{{ student['cgpa'] }}</td>
+                        <td>{{ student['Total Registerd credits'] }}</td>
+                        <td>{{ student['Result Declared Credits'] }}</td>
+                        <td>{{ student['Result Awaiting Credits'] }}</td>
+                        <td>{{ student['Obtained Credits'] }}</td>
+                        <td>{{ student['Cumulative Grade Points'] }}</td>
+                        <td>{{ student['Error'] }}</td>
+                        <td>{{ student['Backlog Count'] }}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <h3>Not Declared Courses and Backlogs</h3>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Not Declared Courses</th>
+                        <th>Backlog Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <ul>
+                                {% for course in student['Not Declared Courses'] %}
+                                    <li>{{ course }}</li>
+                                {% endfor %}
+                            </ul>
+                        </td>
+                        <td>
+                            <ul>
+                                {% for backlog in student['Backlog Details'] %}
+                                    <li>{{ backlog }}</li>
+                                {% endfor %}
+                            </ul>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        {% endif %}
+        <div class="footer">
+            Developed by <span>Dr. Bhaskar Marapelli</span>, Associate Professor & Alternate HOD CSIT
+        </div>
+    </div>
+</body>
+</html>
