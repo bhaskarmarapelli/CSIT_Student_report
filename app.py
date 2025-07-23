@@ -24,6 +24,7 @@ required_report_columns = [
     'Requirements Error', 'Backlog Count', 'Backlog Details'
 ]
 
+
 # Load memo data
 def load_memo_data():
     try:
@@ -36,6 +37,7 @@ def load_memo_data():
     except Exception as e:
         app.logger.error(f"Error loading CSV: {e}")
         return None
+
 
 # Load report data
 def load_report_data():
@@ -59,6 +61,7 @@ def load_report_data():
         app.logger.error(f"Error loading report CSV: {e}")
         return None
 
+
 # Generate course memo
 def generate_memo(student_id):
     df = load_memo_data()
@@ -77,24 +80,57 @@ def generate_memo(student_id):
 
     student_name = student_data['Name'].iloc[0]
 
-    # Group by AcademicYear, Semester, and Bucket Group for detailed memo
-    grouped = student_data.groupby(['AcademicYear', 'Semester', 'Bucket Group'])
+    # Extract CourseCode prefix (remove last character if L, T, P, S)
+    student_data = student_data.copy()
+    student_data['CourseCodePrefix'] = student_data['CourseCode'].str[:-1].where(
+        student_data['CourseCode'].str[-1].isin(['L', 'T', 'P', 'S']),
+        student_data['CourseCode']
+    )
+
+    # Group by AcademicYear, Semester, and CourseCodePrefix
+    grouped = student_data.groupby(['AcademicYear', 'Semester', 'CourseCodePrefix'])
 
     # Prepare memo data
     memo_data = []
-    for (year, sem, bucket), group in grouped:
-        courses = group[['CourseCode', 'LTPS', 'CourseDesc', 'Course Nature', 'Offered By']].to_dict('records')
+    for (year, sem, course_prefix), group in grouped:
+        # Combine LTPS, CourseDesc, Course Nature, Offered By, and Bucket Group for all components
+        components = group[['CourseCode', 'LTPS', 'CourseDesc', 'Course Nature', 'Offered By', 'Bucket Group']].to_dict(
+            'records')
+        # Use the first component's details for display
+        first_component = components[0]
         memo_data.append({
             'AcademicYear': year,
             'Semester': sem,
-            'Bucket Group': bucket,
-            'Courses': courses
+            'Courses': [{
+                'CourseCode': course_prefix,
+                'LTPS': ', '.join(c['LTPS'] for c in components),
+                'CourseDesc': first_component['CourseDesc'],
+                'Course Nature': first_component['Course Nature'],
+                'Offered By': first_component['Offered By'],
+                'Bucket Group': first_component['Bucket Group']
+            }]
         })
 
-    # Calculate course count per Bucket Group
-    bucket_counts = student_data.groupby('Bucket Group').size().reset_index(name='Course Count').to_dict('records')
+    # Group memo_data by AcademicYear and Semester for display
+    grouped_memo = {}
+    for item in memo_data:
+        key = (item['AcademicYear'], item['Semester'])
+        if key not in grouped_memo:
+            grouped_memo[key] = {
+                'AcademicYear': item['AcademicYear'],
+                'Semester': item['Semester'],
+                'Courses': []
+            }
+        grouped_memo[key]['Courses'].extend(item['Courses'])
+
+    memo_data = list(grouped_memo.values())
+
+    # Calculate course count per Bucket Group based on unique CourseCodePrefix
+    bucket_counts = student_data.groupby('Bucket Group')['CourseCodePrefix'].nunique().reset_index(
+        name='Course Count').to_dict('records')
 
     return student_name, memo_data, bucket_counts, None
+
 
 # Generate student report
 def generate_report(roll_no):
@@ -122,9 +158,11 @@ def generate_report(roll_no):
     app.logger.debug(f"Found student: {student['Name']}")
     return student, None
 
+
 @app.route('/')
 def dashboard():
     return render_template('dashboard.html')
+
 
 @app.route('/memo', methods=['GET', 'POST'])
 def memo():
@@ -138,7 +176,9 @@ def memo():
         app.logger.debug(f"Received University ID: {student_id}")
         student_name, memo_data, bucket_counts, error = generate_memo(student_id)
 
-    return render_template('memo.html', student_name=student_name, memo_data=memo_data, bucket_counts=bucket_counts, error=error)
+    return render_template('memo.html', student_name=student_name, memo_data=memo_data, bucket_counts=bucket_counts,
+                           error=error)
+
 
 @app.route('/report', methods=['GET', 'POST'])
 def report():
@@ -148,6 +188,7 @@ def report():
         roll_no = request.form.get('roll_no')
         student, error_message = generate_report(roll_no)
     return render_template('report.html', student=student, error_message=error_message)
+
 
 if __name__ == '__main__':
     app.run()
