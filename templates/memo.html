@@ -123,30 +123,32 @@
 
         {% if student_name and memo_data %}
             <div class="bg-white p-6 rounded-lg shadow-md">
-                <h2 class="text-2xl font-semibold mb-4">Course Memo for {{ student_name }}</h2>
+                <h2 class="text-2xl font-semibold mb-4">Course Memo for {{ student_name }}{{student_id}} </h2>
                 {% for item in memo_data %}
                     <div class="mb-6">
                         <h3 class="text-xl font-medium bg-gray-200 p-3 rounded">
                             {{ item.AcademicYear }} - {{ item.Semester }} - {{ item['Bucket Group'] }}
                         </h3>
-                        <table class="w-full mt-2 border-collapse">
+                        <table class="table table-bordered">
                             <thead>
-                                <tr class="bg-gray-100">
-                                    <th class="border p-2">Course Code</th>
-                                    <th class="border p-2">Type</th>
-                                    <th class="border p-2">Course Description</th>
-                                    <th class="border p-2">Course Nature</th>
-                                    <th class="border p-2">Offered By</th>
+                                <tr >
+                                    <th>Course Code</th>
+                                    <th>Type</th>
+                                    <th>Course Description</th>
+                                    <th>Course Nature</th>
+                                    <th>Offered By</th>
+                                    <th>Bucket Group</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for course in item.Courses %}
                                     <tr>
-                                        <td class="border p-2">{{ course.CourseCode }}</td>
-                                        <td class="border p-2">{{ course.LTPS }}</td>
-                                        <td class="border p-2">{{ course.CourseDesc }}</td>
-                                        <td class="border p-2">{{ course['Course Nature'] }}</td>
-                                        <td class="border p-2">{{ course['Offered By'] }}</td>
+                                        <td>{{ course.CourseCode }}</td>
+                                        <td>{{ course.LTPS }}</td>
+                                        <td>{{ course.CourseDesc }}</td>
+                                        <td>{{ course['Course Nature'] }}</td>
+                                        <td>{{ course['Offered By'] }}</td>
+                                        <td>{{ course['Bucket Group'] }}</td>
                                     </tr>
                                 {% endfor %}
                             </tbody>
@@ -158,18 +160,18 @@
                 {% if bucket_counts %}
                     <div class="mt-8">
                         <h3 class="text-xl font-medium bg-gray-200 p-3 rounded">Summary of Courses by Bucket Group</h3>
-                        <table class="w-full mt-2 border-collapse">
+                        <table class="table table-bordered">
                             <thead>
-                                <tr class="bg-gray-100">
-                                    <th class="border p-2">Bucket Group</th>
-                                    <th class="border p-2">Course Count</th>
+                                <tr>
+                                    <th>Bucket Group</th>
+                                    <th>Course Count</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for bucket in bucket_counts %}
                                     <tr>
-                                        <td class="border p-2">{{ bucket['Bucket Group'] }}</td>
-                                        <td class="border p-2">{{ bucket['Course Count'] }}</td>
+                                        <td>{{ bucket['Bucket Group'] }}</td>
+                                        <td>{{ bucket['Course Count'] }}</td>
                                     </tr>
                                 {% endfor %}
                             </tbody>

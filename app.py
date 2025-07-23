@@ -167,6 +167,7 @@ def dashboard():
 @app.route('/memo', methods=['GET', 'POST'])
 def memo():
     student_name = None
+
     memo_data = None
     bucket_counts = None
     error = None
@@ -176,7 +177,7 @@ def memo():
         app.logger.debug(f"Received University ID: {student_id}")
         student_name, memo_data, bucket_counts, error = generate_memo(student_id)
 
-    return render_template('memo.html', student_name=student_name, memo_data=memo_data, bucket_counts=bucket_counts,
+    return render_template('memo.html',  student_name=student_name, memo_data=memo_data, bucket_counts=bucket_counts,
                            error=error)
 
 
