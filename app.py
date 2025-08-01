@@ -1,36 +1,25 @@
-from flask import Flask, request, render_template, send_file
+from flask import Flask, request, render_template, redirect, url_for, flash
 import pandas as pd
-import logging
 import os
-import io
-from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
 
 app = Flask(__name__)
+app.secret_key = 'your_secret_key_here'
 
-# Configure logging
-logging.basicConfig(level=logging.DEBUG)
+ATTENDANCE_CSV = 'attendance31july.csv'
+MEMO_CSV = 'student_data.csv'
 
-# Paths to CSV files
-CSV_FILE_PATH = 'student_data.csv'
-REPORT_CSV_PATH = 'studentcgpa_data.csv'
-
-# Expected columns for report CSV
-required_report_columns = [
-    'Roll No', 'Name', 'Hostel status', 'cgpa', 'Total Registerd credits',
-    'Result Declared Credits', 'Result Awaiting Credits', 'Obtained Credits',
-    'Cumulative Grade Points', 'Missing Courses', 'Not Declared Courses',
-    'Error', 'Credit Requirements', 'Attained', 'Not Attained',
-    'Requirements Error', 'Backlog Count', 'Backlog Details'
-]
+def load_attendance_data():
+    if not os.path.exists(ATTENDANCE_CSV):
+        return None
+    return pd.read_csv(ATTENDANCE_CSV)
 
 
 # Load memo data
 def load_memo_data():
     try:
-        if not os.path.exists(CSV_FILE_PATH):
+        if not os.path.exists(MEMO_CSV):
             raise FileNotFoundError(f"CSV file not found at {CSV_FILE_PATH}")
-        df = pd.read_csv(CSV_FILE_PATH, delimiter=',', encoding='utf-8')
+        df = pd.read_csv(MEMO_CSV, delimiter=',', encoding='utf-8')
         app.logger.debug(f"Loaded {len(df)} records from CSV")
         app.logger.debug(f"Unique University IDs: {df['University ID'].astype(str).str.strip().unique()}")
         return df
@@ -39,27 +28,6 @@ def load_memo_data():
         return None
 
 
-# Load report data
-def load_report_data():
-    try:
-        df = pd.read_csv(REPORT_CSV_PATH, dtype={'Roll No': str})
-        df.columns = [col.strip() for col in df.columns]
-        missing_columns = [col for col in required_report_columns if col not in df.columns]
-        if missing_columns:
-            app.logger.error(f"Missing columns in report CSV: {missing_columns}")
-            return None
-        app.logger.debug(f"Loaded {len(df)} report records from CSV")
-        app.logger.debug(f"CSV columns: {df.columns.tolist()}")
-        return df
-    except FileNotFoundError:
-        app.logger.error(f"Error: {REPORT_CSV_PATH} not found")
-        return None
-    except pd.errors.EmptyDataError:
-        app.logger.error(f"Error: {REPORT_CSV_PATH} is empty")
-        return None
-    except Exception as e:
-        app.logger.error(f"Error loading report CSV: {e}")
-        return None
 
 
 # Generate course memo
@@ -132,31 +100,6 @@ def generate_memo(student_id):
     return student_name, memo_data, bucket_counts, None
 
 
-# Generate student report
-def generate_report(roll_no):
-    df = load_report_data()
-    if df is None:
-        return None, "Error: studentcgpa_data.csv file is missing, empty, or has missing columns."
-
-    roll_no = str(roll_no).strip()
-    student_data = df[df['Roll No'].astype(str) == roll_no].to_dict('records')
-    app.logger.debug(f"Searching for Roll No: '{roll_no}'")
-    if not student_data:
-        return None, f"No student found with Roll No: {roll_no}."
-
-    student = student_data[0]
-    student['Not Declared Courses'] = (
-        student['Not Declared Courses'].split('||')
-        if 'Not Declared Courses' in student and pd.notna(student['Not Declared Courses'])
-        else []
-    )
-    student['Backlog Details'] = (
-        student['Backlog Details'].split('||')
-        if 'Backlog Details' in student and pd.notna(student['Backlog Details'])
-        else []
-    )
-    app.logger.debug(f"Found student: {student['Name']}")
-    return student, None
 
 
 @app.route('/')
@@ -179,16 +122,49 @@ def memo():
 
     return render_template('memo.html',  student_name=student_name, memo_data=memo_data, bucket_counts=bucket_counts,
                            error=error)
-
-
 @app.route('/report', methods=['GET', 'POST'])
 def report():
-    student = None
-    error_message = None
     if request.method == 'POST':
-        roll_no = request.form.get('roll_no')
-        student, error_message = generate_report(roll_no)
-    return render_template('report.html', student=student, error_message=error_message)
+        attendance_df = load_attendance_data()
+        if attendance_df is None:
+            flash("Attendance data file not found.", 'danger')
+            return redirect(url_for('report'))
+
+        student_id = request.form['student_id']
+        try:
+            student_data = attendance_df[attendance_df['student_uni_id'] == int(student_id)]
+        except ValueError:
+            flash(f"Invalid ID format: '{student_id}'", 'danger')
+            return redirect(url_for('report'))
+
+        if student_data.empty:
+            flash(f"No attendance data found for Student ID: {student_id}", 'warning')
+            return redirect(url_for('report'))
+
+        name = student_data['student_name'].iloc[0]
+        cgpa = student_data['cgpa'].iloc[0]
+        backlogs = student_data['backlogs'].iloc[0]
+        councelorname = student_data['counselorname'].iloc[0]
+        councelorcontact = student_data['counselorcontact'].iloc[0]
+        courses = student_data[[
+            'coursecode', 'coursename', 'totalclassesconducted',
+            'totalclassesattended', 'attendance_percentage'
+        ]].to_dict('records')
+
+        notdeclaredcoursessplit = student_data['notdeclaredcourses'].iloc[0].split("||") if 'notdeclaredcourses' in student_data.columns else []
+        backlogdetailssplit = student_data['backlogdetails'].iloc[0].split("||") if 'backlogdetails' in student_data.columns else []
+
+        return render_template('result.html',
+                               student_id=student_id,
+                               name=name,
+                               cgpa=cgpa,
+                               backlogs=backlogs,
+                               councelorname=councelorname,
+                               councelorcontact=councelorcontact,
+                               courses=courses,
+                               notdeclaredcoursessplit=notdeclaredcoursessplit,
+                               backlogdetailssplit=backlogdetailssplit)
+    return render_template('search.html')
 
 
 if __name__ == '__main__':
