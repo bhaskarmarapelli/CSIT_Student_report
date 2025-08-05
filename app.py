@@ -8,6 +8,9 @@ app.secret_key = 'your_secret_key_here'
 ATTENDANCE_CSV = 'attendance31july.csv'
 MEMO_CSV = 'student_data.csv'
 
+# Load attendance data
+df = pd.read_csv('attendance31july.csv')
+
 def load_attendance_data():
     if not os.path.exists(ATTENDANCE_CSV):
         return None
@@ -18,7 +21,7 @@ def load_attendance_data():
 def load_memo_data():
     try:
         if not os.path.exists(MEMO_CSV):
-            raise FileNotFoundError(f"CSV file not found at {CSV_FILE_PATH}")
+            raise FileNotFoundError(f"CSV file not found at {MEMO_CSV}")
         df = pd.read_csv(MEMO_CSV, delimiter=',', encoding='utf-8')
         app.logger.debug(f"Loaded {len(df)} records from CSV")
         app.logger.debug(f"Unique University IDs: {df['University ID'].astype(str).str.strip().unique()}")
@@ -165,6 +168,39 @@ def report():
                                notdeclaredcoursessplit=notdeclaredcoursessplit,
                                backlogdetailssplit=backlogdetailssplit)
     return render_template('search.html')
+
+
+@app.route('/all_reports')
+def all_reports():
+    all_students = []
+
+    for _, student_data in df.groupby('student_uni_id'):
+        student_info = {
+            'student_id': student_data['student_uni_id'].iloc[0],
+            'name': student_data['student_name'].iloc[0],
+            'cgpa': student_data['cgpa'].iloc[0],
+            'Postal_Address': student_data['Postal_Address'].iloc[0],
+            'phone': student_data['phone'].iloc[0],
+
+            'backlogs': student_data['backlogs'].iloc[0],
+            'councelorname': student_data['counselorname'].iloc[0],
+            'councelorcontact': student_data['counselorcontact'].iloc[0],
+            'courses': student_data[[
+                'coursecode',
+                'coursename',
+                'totalclassesconducted',
+                'totalclassesattended',
+                'attendance_percentage'
+            ]].to_dict('records'),
+            'notdeclaredcoursessplit': student_data['notdeclaredcourses'].iloc[0].split("||") if 'notdeclaredcourses' in student_data.columns and pd.notna(student_data['notdeclaredcourses'].iloc[0]) else 'Not Available',
+
+            'backlogdetailssplit': student_data['backlogdetails'].iloc[0].split(
+                "||") if 'backlogdetails' in student_data.columns and pd.notna(
+                student_data['backlogdetails'].iloc[0]) else 'No Backlogs'
+        }
+        all_students.append(student_info)
+
+    return render_template('all_results.html', all_students=all_students)
 
 
 if __name__ == '__main__':

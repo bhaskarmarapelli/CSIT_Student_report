@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>All Student Reports</title>
+    <style>
+
+body {
+        font-family: Arial, sans-serif;
+    }
+
+    .report {
+        border: 1px solid #ccc;
+        padding: 20px;
+        margin-bottom: 30px;
+        position: relative;
+    }
+        .footer {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #dee2e6;
+      text-align: center;
+      font-size: 0.70em;
+      border-top: 2px solid #007bff;
+    }
+
+
+.address-box {
+    position: absolute;
+    top: 10px;
+    right: 40px;
+    border: 1px solid #999;
+    padding: 10px;
+    background-color: #f9f9f9;
+    width: 250px;
+    font-size: 12px;
+      /* or any suitable value */
+
+
+}
+
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+    }
+
+    th, td {
+        border: 1px solid #999;
+        padding: 8px;
+        text-align: left;
+    }
+
+    th {
+        background-color: #f2f2f2;
+    }
+      .header img {
+      max-width: 180px;
+      border-radius: 10px;
+      box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+    }
+
+    @media print {
+
+
+ body {
+        counter-reset: page;
+    }
+
+    .report::after {
+        content: "Page " counter(page);
+        counter-increment: page;
+        position: absolute;
+        bottom: 10px;
+        right: 20px;
+        font-size: 10px;
+        color: #333;
+    }
+
+        .page-break {
+        page-break-before: always;
+    }
+
+    }
+
+    </style>
+</head>
+<body>
+    <h1>All Student Reports</h1>
+    {% for student in all_students %}
+        <div class="report page-break">
+
+<div class="header">
+    <img src="/static/csit_logo.png" alt="CSIT Department Logo">
+  </div>
+
+    <div class="address-box">
+        <strong>Address:</strong><br>
+        {{ student.Postal_Address }}<br>
+        <strong>Phone:</strong><br>
+        {{ student.phone}}
+    </div>
+
+            <h2>{{ student.name }} (ID: {{ student.student_id }})</h2>
+            <p><strong>CGPA:</strong> {{ student.cgpa }}</p>
+            <p><strong>Backlogs:</strong> {{ student.backlogs | int}}</p>
+            <p><strong>Counselor:</strong> {{ student.councelorname }} ({{ student.councelorcontact | int
+                }})</p>
+                  <h3>Courses</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Course Code</th>
+                        <th>Course Name</th>
+                        <th>Classes Conducted</th>
+                        <th>Classes Attended</th>
+                        <th>Attendance %</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for course in student.courses %}
+                    <tr>
+                        <td>{{ course.coursecode }}</td>
+                        <td>{{ course.coursename }}</td>
+                        <td>{{ course.totalclassesconducted }}</td>
+                        <td>{{ course.totalclassesattended }}</td>
+                        <td>{{ course.attendance_percentage }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+      <h3>Not Declared Courses and Backlogs</h3>
+<table border="1">
+    <tr> <th>Not Declared Courses </th><th>Backlog Details</th> </tr>
+           <tr> <td><ul>
+                {% if student.notdeclaredcoursessplit != 'Not Available' %}
+                    {% for course in student.notdeclaredcoursessplit %}
+                        <li>{{ course }}</li>
+                    {% endfor %}
+                {% else %}
+                    <li>Not Available</li>
+                {% endif %}
+            </ul></td><td>
+
+
+            <ul>
+                {% if student.backlogdetailssplit != 'No Backlogs' %}
+                    {% for detail in student.backlogdetailssplit %}
+                        <li>{{ detail }}</li>
+                    {% endfor %}
+                {% else %}
+                    <li>No Backlogs</li>
+                {% endif %}
+            </ul></td>
+    </tr>
+    </table>
+             <div class="footer">
+      <span>Dr Bhaskar Marapelli, Department of CSIT</span>, KLEF Deemed to be University,
+Green Fields, Vaddeswaram,
+Guntur District, A.P., INDIA.
+Pincode : 522 302.
+    </div>
+        </div>
+    {% endfor %}
+</body>
+</html>

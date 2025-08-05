@@ -104,6 +104,45 @@ h2, h3, h5 {
   color: #002d72;
 }
 
+
+    form {
+      max-width: 400px;
+      margin: 30px auto;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    form input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    form button {
+      width: 100%;
+      padding: 10px;
+      background-color: #004080;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      transition: background-color 0.3s ease;
+    }
+
+    form button:hover {
+      background-color: #007bff;
+    }
+
+    .footer span {
+      color: #007bff;
+      font-weight: bold;
+    }
+
+
 @media (max-width: 576px) {
   body {
     font-size: 0.85em;
@@ -139,6 +178,9 @@ h2, h3, h5 {
     font-size: 0.8em;
     padding: 4px 8px;
   }
+
+
+
 }
 
 @media print {
@@ -231,10 +273,10 @@ h2, h3, h5 {
     <h2>Enter Student ID</h2>
 
 <div class="bg-white p-6 rounded-lg shadow-md mb-6">
-    <form action="/report" method="post" class="d-flex flex-column flex-sm-row gap-3 mb-4">
-      <input type="text" name="student_id" placeholder="e.g. 2200090001" class="form-control" required>
+    <form action="/report" method="post" >
+      <input type="text" name="student_id" placeholder="e.g. 2200090001"  required>
       <button type="submit" class="btn btn-primary">Generate Report</button>
-     <a href="/" class="btn btn-secondary">Back to Dashboard</a>
+
     </form>
 
 
@@ -249,13 +291,23 @@ h2, h3, h5 {
     {% endfor %}
   {% endif %}
 {% endwith %}
-    <div class="footer">
-      <span>Dr Bhaksar Marapelli, Department of CSIT</span>, KLEF Deemed to be University,
+
+   <form action="/all_reports">
+    <button type="submit">Generate All Students Reports</button>
+</form>
+  <h3>
+  <a href="/" class="btn btn-secondary" align="center">Back to Dashboard</a>
+</h3>
+
+
+            <div class="footer">
+      <span>Dr Bhaskar Marapelli, Department of CSIT</span>, KLEF Deemed to be University,
 Green Fields, Vaddeswaram,
 Guntur District, A.P., INDIA.
 Pincode : 522 302.
-Phone : 08645 - 350200.
     </div>
+  </div>
+
 
 
 </body>
